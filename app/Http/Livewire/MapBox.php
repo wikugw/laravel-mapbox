@@ -11,8 +11,9 @@ class MapBox extends Component
 {
     use WithFileUploads;
 
-    public $longtitude, $lattitude, $title, $description, $image;
+    public $locationId, $longtitude, $lattitude, $title, $description, $image, $imageUrl;
     public $geoJson;
+    public $isEdit = false;
 
     private function loadLocations()
     {
@@ -84,6 +85,57 @@ class MapBox extends Component
         $this->loadLocations();
         $this->clearForm();
         $this->dispatchBrowserEvent('locationAdded', $this->geoJson);
+    }
+
+    public function findLocationById($id)
+    {
+        $location = Location::findOrFail($id);
+        
+        $this->locationId = $id;
+        $this->longtitude = $location->long;
+        $this->lattitude = $location->lat;
+        $this->title = $location->title;
+        $this->description = $location->description;
+        $this->imageUrl = $location->image;
+        $this->isEdit = true;
+    }
+
+    public function updateLocation()
+    {
+        $this->validate([
+            'longtitude'        => 'required',
+            'lattitude'         => 'required',
+            'title'             => 'required',
+            'description'       => 'required',
+        ]);
+
+        $location = Location::findOrFail($this->locationId);
+
+        if($this->image){
+            $imageName = md5($this->image.microtime()).'.'.$this->image->extension();
+
+            Storage::putFileAs(
+                'public/images',
+                $this->image,
+                $imageName
+            );
+
+            $updateData = [
+                'title' => $this->title,
+                'description' => $this->description,
+                'image' => $imageName,
+            ];
+        } else {
+            $updateData = [
+                'title' => $this->title,
+                'description' => $this->description
+            ];
+        }
+
+        $location->update($updateData);
+        $this->clearForm();
+        $this->imageUrl = "";
+        $this->dispatchBrowserEvent('updateLocation', $this->geoJson);
     }
     
     public function render()

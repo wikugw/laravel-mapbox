@@ -15,7 +15,13 @@
                 Form
             </div>
             <div class="card-body">
-                <form wire:submit.prevent="saveLocation">
+                <form 
+                    @if ($isEdit)
+                        wire:submit.prevent="updateLocation"
+                    @else
+                        wire:submit.prevent="saveLocation"
+                    @endif
+                >
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="form-group">
@@ -62,9 +68,12 @@
                         @if ($image)
                             <img src="{{ $image->temporaryUrl() }}" alt="{{ $image }}" class="img-fluid">
                         @endif
+                        @if ($imageUrl && !$image)
+                            <img src="{{ asset('storage/images/' .$imageUrl) }}" alt="{{ $image }}" class="img-fluid">                         
+                        @endif
                     </div>
                     <div class="form-group">
-                        <button type="submit" class="btn btn-dark text-white btn-block">Submit</button>
+                        <button type="submit" class="btn btn-dark text-white btn-block">{{$isEdit ? 'Update' : 'Submit'}}</button>
                     </div>
                 </form>
             </div>
@@ -120,6 +129,11 @@
                     </div>
                     `;
 
+                    markerElement.addEventListener('click', (e) => {
+                        const locationId = e.toElement.id;
+                        @this.findLocationById(locationId);
+                    });
+
                      const popUp = new mapboxgl.Popup({
                          offset:25
                      }).setHTML(content).setMaxWidth("400px");
@@ -135,6 +149,11 @@
 
             window.addEventListener('locationAdded', (e) => {
                 loadLocations(JSON.parse(e.detail));
+            });
+
+            window.addEventListener('updateLocation', (e) => {
+                loadLocations(JSON.parse(e.detail));
+                $('.mapboxgl-popup').remove();
             });
 
             const style = 'dark-v10';
