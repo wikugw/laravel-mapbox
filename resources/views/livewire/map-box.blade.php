@@ -15,20 +15,58 @@
                 Form
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-6">
-                        <div class="form-group">
-                            <label for="">longtitude</label>
-                            <input wire:model="longtitude" type="text" class="form-control">
+                <form wire:submit.prevent="saveLocation">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="">longtitude</label>
+                                <input wire:model="longtitude" type="text" class="form-control">
+                                @error('longtitude')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="">lattitude</label>
+                                <input wire:model="lattitude" type="text" class="form-control">
+                                @error('lattitude')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
                         </div>
                     </div>
-                    <div class="col-sm-6">
-                        <div class="form-group">
-                            <label for="">lattitude</label>
-                            <input wire:model="lattitude" type="text" class="form-control">
-                        </div>
+                    <div class="form-group">
+                        <label for="">Title</label>
+                        <input wire:model="title" type="text" class="form-control">
+                        @error('title')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     </div>
-                </div>
+                    <div class="form-group">
+                        <label for="">Description</label>
+                        <textarea wire:model="description" class="form-control"></textarea>
+                        @error('description')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="">Picture</label>
+                        <div class="custom-file">
+                            <input wire:model="image" type="file" class="custom-file-input" id="customFileInput">
+                            <label for="" class="custom-file-label">Choose file</label>
+                        </div>
+                        @error('image')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                        @if ($image)
+                            <img src="{{ $image->temporaryUrl() }}" alt="{{ $image }}" class="img-fluid">
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-dark text-white btn-block">Submit</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -59,6 +97,8 @@
                     markerElement.style.width = '50px';
                     markerElement.style.height = '50px';
 
+                    const imageStorage = '{{asset('/storage/images')}}' + '/' + image
+
                     const content = `
                     <div style="overflow-y:auto; max-height:400px; width:100%">
                         <table class="table table-sm mt-2">
@@ -69,7 +109,7 @@
                                 </tr>
                                 <tr>
                                     <td>Picture</td>
-                                    <td><img src="${image}" alt="image-${title}" loading="lazy" class="img-fluid"></td>
+                                    <td><img src="${imageStorage}" alt="image-${title}" loading="lazy" class="img-fluid"></td>
                                 </tr>
                                 <tr>
                                     <td>Description</td>
@@ -92,6 +132,10 @@
             }
 
             loadLocations({!! $geoJson !!});
+
+            window.addEventListener('locationAdded', (e) => {
+                loadLocations(JSON.parse(e.detail));
+            });
 
             const style = 'dark-v10';
             map.setStyle(`mapbox://styles/mapbox/${style}`);

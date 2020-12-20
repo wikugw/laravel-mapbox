@@ -1,13 +1,17 @@
 <?php
 
 namespace App\Http\Livewire;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 use Livewire\Component;
 use App\Models\Location;
 
 class MapBox extends Component
 {
-    public $longtitude, $lattitude;
+    use WithFileUploads;
+
+    public $longtitude, $lattitude, $title, $description, $image;
     public $geoJson;
 
     private function loadLocations()
@@ -39,6 +43,47 @@ class MapBox extends Component
 
         $geoJson = collect($geoLocation)->toJson();
         $this->geoJson = $geoJson;
+    }
+
+    
+    private function clearForm()
+    {
+        $this->longtitude = '';
+        $this->lattitude = '';
+        $this->title = '';
+        $this->description = '';
+        $this->image = '';
+    }
+
+    public function saveLocation()
+    {
+        $this->validate([
+            'longtitude'        => 'required',
+            'lattitude'         => 'required',
+            'title'             => 'required',
+            'description'       => 'required',
+            'image'             => 'image|max:2048|required',
+        ]);
+
+        $imageName = md5($this->image.microtime()).'.'.$this->image->extension();
+
+        Storage::putFileAs(
+            'public/images',
+            $this->image,
+            $imageName
+        );
+
+        Location::create([
+            'long'              => $this->longtitude,
+            'lat'               => $this->lattitude,
+            'title'             => $this->title,
+            'description'       => $this->description,
+            'image'             => $imageName,
+        ]);
+
+        $this->loadLocations();
+        $this->clearForm();
+        $this->dispatchBrowserEvent('locationAdded', $this->geoJson);
     }
     
     public function render()
