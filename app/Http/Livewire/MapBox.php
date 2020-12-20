@@ -137,6 +137,17 @@ class MapBox extends Component
         $this->imageUrl = "";
         $this->dispatchBrowserEvent('updateLocation', $this->geoJson);
     }
+
+    public function deleteLocation()
+    {
+        $location = Location::findOrFail($this->locationId);
+        $location->delete();
+
+        $this->clearForm();
+        $this->imageUrl = "";
+        $this->isEdit = false;
+        $this->dispatchBrowserEvent('deleteLocation', $location->id);
+    }
     
     public function render()
     {

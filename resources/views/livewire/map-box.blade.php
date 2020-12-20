@@ -74,6 +74,9 @@
                     </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-dark text-white btn-block">{{$isEdit ? 'Update' : 'Submit'}}</button>
+                        @if ($isEdit)
+                            <button wire:click="deleteLocation" type="button" class="btn btn-danger text-white btn-block">Deleter</button> 
+                        @endif
                     </div>
                 </form>
             </div>
@@ -152,7 +155,12 @@
             });
 
             window.addEventListener('updateLocation', (e) => {
+                $('.mapboxgl-popup').remove();
                 loadLocations(JSON.parse(e.detail));
+            });
+
+            window.addEventListener('deleteLocation', (e) => {
+                $('.marker' + e.detail).remove();
                 $('.mapboxgl-popup').remove();
             });
 
